@@ -1,0 +1,37 @@
+version: "3.7"
+
+services:
+  app:
+    ports:
+      - 5000:5000
+    command: server.py
+    depends_on:
+      - redis
+    build:
+      context: . 
+    environment:
+      SERVER_RTMP: "rtmp://10.10.11.165:1935"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81abc
+    volumes:
+      - .:/app
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81abc
+  rmtp-server:
+    image: tiangolo/nginx-rtmp
+    ports:
+      - "1935:1935"  # Port cho RMTP
+      - "8080:80"    # Port cho HTTP
+    volumes:
+      - ./data:/data  # Thư mục chia sẻ cho lưu trữ dữ liệu (chỉnh sửa đường dẫn nếu cần)
+    networks:
+      - rmtp_network
+    restart: always
+
+networks:
+  rmtp_network:
